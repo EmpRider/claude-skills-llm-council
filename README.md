@@ -13,6 +13,7 @@ The original council had five broad business thinking styles and a chairman who 
 3. **An active owner:** the engineering lead takes a provisional position, questions conflicting arguments, hears rebuttals, and explicitly resolves or records dissent.
 4. **Anonymous peer review:** proposals are criticized on their evidence, rather than the perceived authority of their author.
 5. **Decision-ready result:** a recommended option, trade-offs, tests, rollout/rollback, remaining risks, and an ADR-style record.
+6. **Codebase-first issue fixing:** the council inspects affected code and tests, verifies the root cause, and prefers the smallest durable change unless severity and evidence justify a broader one.
 
 The AI provides a **proposed** decision. It never claims to have secured a real engineer's approval or a required Security/SRE/compliance sign-off.
 
@@ -38,6 +39,7 @@ Useful for questions with meaningful trade-offs:
 - Which caching design meets our consistency and latency requirements?
 - Should we refactor a critical module or isolate it behind an adapter?
 - Is this authentication architecture safe and maintainable?
+- Which permanent fix for this production bug has the smallest justified blast radius?
 
 Skip the council for straightforward bug fixes, routine coding, factual lookups, and decisions already made.
 
@@ -66,7 +68,30 @@ run the council on this database migration plan. Identify what evidence is missi
 debate rollback and data consistency, then give me an ADR-style proposed decision.
 ```
 
+```text
+bug-fix review: investigate the duplicate processing issue in the current codebase.
+Trace the affected code paths, root cause, callers, and tests first. Compare a
+minimal-impact permanent fix with a broader structural fix. Account for severity,
+regression risk, safe rollout, and rollback. Have the owning Tech Lead challenge
+the options and recommend the smallest safe permanent fix.
+```
+
 Other triggers: `council this`, `run the council`, `architecture council`, `design review`, `war room this`, `stress-test this`, `debate this`.
+
+## Issue-fix policy
+
+**Review the current codebase before selecting a fix.** The council must inspect the relevant implementation, reproduction or failing behavior, dependencies, consumers, and tests. If it cannot access the codebase, it must say so and request the necessary evidence rather than inventing a permanent fix.
+
+The default is **the smallest change that permanently resolves the verified root cause**—not simply the patch with the fewest lines. If a structural problem requires a high-impact permanent change, the council weighs severity against regression, migration, and operational risk and plans a staged rollout.
+
+| Severity | What takes priority |
+| --- | --- |
+| P0 Critical | Restore safety quickly; reversible mitigation may come first, with permanent remediation tracked separately. |
+| P1 High | Remove serious risk promptly; use rollout safeguards for unavoidable high-impact changes. |
+| P2 Medium | Prefer the narrow, verified permanent solution. |
+| P3 Low | Avoid disproportionate change risk; plan invasive remediation rather than rushing it. |
+
+Neither change impact nor permanence is silently ignored. Any compromise is documented with its reason, residual risk, responsible owner, and follow-up. A workaround is never labeled a completed permanent fix.
 
 ## Decision workflow
 
